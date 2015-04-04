@@ -61,6 +61,8 @@ public:
   void em( std::vector<T*> &samples );
 
   T posterior( T* sample, T *pst );
+  
+  T posterior_hard( T* sample, T *pst );
 
   T log_likelihood( std::vector<T*> &samples );
 

@@ -535,7 +535,8 @@ gaussian_mixture<T>::accumulate_statistics( T* x, bool _s0, bool _s1, bool _s2,
   }
   
   T *pst=new T[ngauss];
-  T llh = posterior( x, pst );
+  //T llh = posterior( x, pst );
+  T llh = posterior_hard( x, pst );
 
   // s0_active
   if( _s0 )
@@ -764,6 +765,32 @@ gaussian_mixture<T>::posterior( T *x, T *pst )
   }
 
   return llh;
+}
+
+
+template<class T>
+T
+gaussian_mixture<T>::posterior_hard( T *x, T *pst )
+{
+    
+#pragma omp parallel for
+  for( int k=0; k<ngauss; ++k )
+  {
+    pst[k] = log_gauss( k, x );
+  }
+  simd::add( ngauss, pst, log_coef );
+
+  int k_max = 0;
+  for( int k=1; k<ngauss; ++k )
+  {
+    if( pst[k] > pst[k_max] )
+      k_max = k;
+  }
+  
+  memset(pst, 0, ngauss*sizeof(T));
+  pst[k_max] = 1;
+
+  return 0;
 }
 
 /// \brief sample log likelihoog
